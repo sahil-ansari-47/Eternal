@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, ipcMain, Menu } from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
 
@@ -12,11 +12,12 @@ const createWindow = () => {
   const mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
+    frame: false,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
     },
   });
-
+  Menu.setApplicationMenu(null);
   // and load the index.html of the app.
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
     mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
@@ -54,3 +55,22 @@ app.on('activate', () => {
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and import them here.
+
+ipcMain.on("window:minimize", (event) => {
+  const win = BrowserWindow.fromWebContents(event.sender);
+  win.minimize();
+});
+
+ipcMain.on("window:maximize", (event) => {
+  const win = BrowserWindow.fromWebContents(event.sender);
+  if (win.isMaximized()) {
+    win.unmaximize();
+  } else {
+    win.maximize();
+  }
+});
+
+ipcMain.on("window:close", (event) => {
+  const win = BrowserWindow.fromWebContents(event.sender);
+  win.close();
+});
